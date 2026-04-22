@@ -1,16 +1,16 @@
 {
-  "name": "Maths Coder",
+  "name": "maths-coder",
   "version": "1.0.0",
-  "dependencies": {
-    "axios": "^1.6.0",
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "@monaco-editor/react": "^4.6.0"
-  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
+  },
+  "dependencies": {
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "axios": "^1.6.0",
+    "@monaco-editor/react": "^4.6.0"
   }
 }
