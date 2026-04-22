@@ -9,18 +9,18 @@ export default function Home() {
   const [code, setCode] = useState("");
   const [sha, setSha] = useState("");
 
-  // Get GitHub token from URL after login
+  // Get token after GitHub login redirect
   useEffect(() => {
     const urlToken = new URLSearchParams(window.location.search).get("token");
     if (urlToken) setToken(urlToken);
   }, []);
 
-  // Login to GitHub
+  // GitHub login
   const login = () => {
     window.location.href = "/api/login";
   };
 
-  // Load user repositories
+  // Load repos
   const loadRepos = async () => {
     const res = await fetch("/api/repos", {
       headers: { Authorization: token }
@@ -30,7 +30,7 @@ export default function Home() {
     setRepos(data);
   };
 
-  // Open file from GitHub
+  // Open file from repo
   const openFile = async () => {
     const res = await fetch(
       `/api/file?repo=${repo}&path=${path}`,
@@ -45,7 +45,7 @@ export default function Home() {
     setSha(data.sha);
   };
 
-  // Save file back to GitHub
+  // Save file to GitHub
   const saveFile = async () => {
     await fetch("/api/file", {
       method: "POST",
@@ -69,8 +69,7 @@ export default function Home() {
       
       {/* Sidebar */}
       <div style={{ width: 280, padding: 10, borderRight: "1px solid #ddd" }}>
-        
-        <h3>⚡ Maths Coder</h3>
+        <h2>⚡ Maths Coder</h2>
 
         <button onClick={login}>Login with GitHub</button>
 
@@ -81,9 +80,9 @@ export default function Home() {
         <br /><br />
 
         <select onChange={(e) => setRepo(e.target.value)}>
-          <option>Select Repo</option>
+          <option>Select Repository</option>
           {repos.map((r) => (
-            <option key={r.full_name}>
+            <option key={r.full_name} value={r.full_name}>
               {r.full_name}
             </option>
           ))}
