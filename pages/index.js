@@ -107,9 +107,17 @@ function AIChat({ contentMap, activeTab, onInsert }) {
   ]);
   const [input, setInput]             = useState("");
   const [loading, setLoading]         = useState(false);
-  const [apiKey, setApiKey]           = useState(() => localStorage.getItem("openrouter_key") || "");
+  const [apiKey, setApiKey]           = useState("");
   const [showSettings, setShowSettings] = useState(false);
-  const [model, setModel]             = useState(() => localStorage.getItem("openrouter_model") || "anthropic/claude-3.5-sonnet");
+  const [model, setModel]             = useState("anthropic/claude-3.5-sonnet");
+
+  // Hydrate from localStorage only on the client (avoids Next.js SSR crash)
+  useEffect(() => {
+    const savedKey   = localStorage.getItem("openrouter_key");
+    const savedModel = localStorage.getItem("openrouter_model");
+    if (savedKey)   setApiKey(savedKey);
+    if (savedModel) setModel(savedModel);
+  }, []);
   const [copiedIdx, setCopiedIdx]     = useState(null);
   const [streamText, setStreamText]   = useState("");
   const abortRef                      = useRef(null);
