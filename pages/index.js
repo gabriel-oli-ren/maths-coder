@@ -473,12 +473,21 @@ export default function Home() {
   const [showChat, setShowChat]     = useState(true);
   const editorRef                   = useRef(null);
 
+  const [user, setUser] = useState(null);
+
   useEffect(() => {
-    const t = new URLSearchParams(window.location.search).get("token");
-    if (t) setToken(t);
+    const stored = localStorage.getItem("gh_token");
+    if (stored) {
+      setToken(stored);
+      fetch("https://api.github.com/user", { headers: { Authorization: `Bearer ${stored}` } })
+        .then(r => r.ok ? r.json() : null)
+        .then(u => { if (u) setUser(u); })
+        .catch(() => {});
+    }
   }, []);
 
-  const login = () => { window.location.href = "/api/login"; };
+  const login  = () => { window.location.href = "/api/login"; };
+  const logout = () => { localStorage.removeItem("gh_token"); setToken(""); setUser(null); setRepos([]); setRepo(""); };
 
   const loadRepos = async () => {
     setStatus("Loading repos…");
@@ -607,9 +616,14 @@ export default function Home() {
           </ActivityBtn>
         </div>
         <div style={S.activityBottom}>
-          <ActivityBtn onClick={login} title="GitHub Login">
-            <IconGitHub/>
-          </ActivityBtn>
+          {user
+            ? <div title={`Signed in as ${user.login} — click to sign out`} onClick={logout} style={{width:48,height:48,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",borderLeft:"2px solid transparent"}}>
+                <img src={user.avatar_url} alt={user.login} style={{width:26,height:26,borderRadius:"50%",border:"2px solid #1f6feb"}}/>
+              </div>
+            : <ActivityBtn onClick={login} title="Sign in with GitHub">
+                <IconGitHub/>
+              </ActivityBtn>
+          }
         </div>
       </div>
 
@@ -622,27 +636,41 @@ export default function Home() {
                 <span style={S.sidebarTitle}>EXPLORER</span>
               </div>
               <div style={S.repoSection}>
-                <div style={S.repoHeader} onClick={() => setRepoOpen(o=>!o)}>
-                  <IconChevron right={!repoOpen}/>
-                  <span style={{marginLeft:4, fontSize:11, color:"#8b949e", letterSpacing:"0.08em"}}>REPOSITORY</span>
-                </div>
-                {repoOpen && (
-                  <div style={{padding:"6px 8px", display:"flex", flexDirection:"column", gap:4}}>
-                    <input
-                      style={S.input}
-                      placeholder="GitHub token…"
-                      type="password"
-                      value={token}
-                      onChange={e => setToken(e.target.value)}
-                    />
-                    <button style={S.smallBtn} onClick={loadRepos}>Load repos</button>
-                    {repos.length > 0 && (
-                      <select style={S.select} onChange={e => setRepo(e.target.value)}>
-                        <option>Select repo…</option>
-                        {repos.map(r => <option key={r.full_name} value={r.full_name}>{r.full_name}</option>)}
-                      </select>
-                    )}
+                {!token ? (
+                  <div style={{padding:"10px 12px"}}>
+                    <button style={{...S.smallBtn, display:"flex", alignItems:"center", justifyContent:"center", gap:6, background:"#238636", borderColor:"#2ea043", color:"white", fontWeight:600}} onClick={login}>
+                      <IconGitHub/> Sign in with GitHub
+                    </button>
+                    <div style={{fontSize:10, color:"#484f58", marginTop:6, textAlign:"center"}}>Connect GitHub to browse repos</div>
                   </div>
+                ) : (
+                  <>
+                    {user && (
+                      <div style={{padding:"8px 12px", display:"flex", alignItems:"center", gap:8, borderBottom:"1px solid #21262d"}}>
+                        <img src={user.avatar_url} alt={user.login} style={{width:24,height:24,borderRadius:"50%"}}/>
+                        <div style={{flex:1, minWidth:0}}>
+                          <div style={{fontSize:12, color:"#e6edf3", fontWeight:600, overflow:"hidden", textOverflow:"ellipsis"}}>{user.login}</div>
+                          <div style={{fontSize:10, color:"#8b949e"}}>GitHub</div>
+                        </div>
+                        <button onClick={logout} style={{background:"none",border:"none",color:"#8b949e",cursor:"pointer",fontSize:10,padding:"2px 4px"}}>Sign out</button>
+                      </div>
+                    )}
+                    <div style={S.repoHeader} onClick={() => setRepoOpen(o=>!o)}>
+                      <IconChevron right={!repoOpen}/>
+                      <span style={{marginLeft:4, fontSize:11, color:"#8b949e", letterSpacing:"0.08em"}}>REPOSITORY</span>
+                    </div>
+                    {repoOpen && (
+                      <div style={{padding:"6px 8px", display:"flex", flexDirection:"column", gap:4}}>
+                        <button style={S.smallBtn} onClick={loadRepos}>Load repos</button>
+                        {repos.length > 0 && (
+                          <select style={S.select} onChange={e => setRepo(e.target.value)}>
+                            <option>Select repo…</option>
+                            {repos.map(r => <option key={r.full_name} value={r.full_name}>{r.full_name}</option>)}
+                          </select>
+                        )}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
               <div style={S.sidebarHeader}>
